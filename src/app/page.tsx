@@ -24,6 +24,8 @@ import { ITEM_NAMES, ITEM_EMOJIS } from "@/lib/zones";
 import { useStreakCheckin } from "@/lib/useStreakCheckin";
 import { useLiveUsers } from "@/lib/useLiveUsers";
 import { useRaidSequence } from "@/lib/useRaidSequence";
+import { useDailies } from "@/lib/useDailies";
+import DailiesWidget from "@/components/DailiesWidget";
 import RaidPreviewModal from "@/components/RaidPreviewModal";
 import RaidOverlay from "@/components/RaidOverlay";
 import PillModal from "@/components/PillModal";
@@ -85,6 +87,7 @@ const ACHIEVEMENT_TIERS_MAP: Record<string, string> = {
   obsessed: "gold",
   no_life: "diamond",
   white_rabbit: "diamond",
+  daily_rookie: "bronze", daily_regular: "silver", daily_master: "gold", daily_legend: "diamond",
 };
 const ACHIEVEMENT_NAMES_MAP: Record<string, string> = {
   god_mode: "God Mode", legend: "Legend", famous: "Famous", mayor: "Mayor",
@@ -97,6 +100,7 @@ const ACHIEVEMENT_NAMES_MAP: Record<string, string> = {
   on_fire: "On Fire", dedicated: "Dedicated", obsessed: "Obsessed",
   no_life: "No Life", generous_streak: "Generous Streak",
   white_rabbit: "White Rabbit",
+  daily_rookie: "Daily Rookie", daily_regular: "Daily Regular", daily_master: "Daily Master", daily_legend: "Daily Legend",
 };
 
 // Dev "class" — funny RPG-style title, deterministic per username
@@ -723,6 +727,8 @@ function HomeContent() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ building_login: selectedBuilding.login }),
           });
+          trackMissionRef.current("visit_building");
+          trackMissionRef.current("visit_3_buildings");
         } catch { /* ignore */ }
       }, 3000);
     }
@@ -745,6 +751,8 @@ function HomeContent() {
       });
       if (res.ok) {
         trackKudosSent(selectedBuilding.login);
+        trackMissionRef.current("give_kudos");
+        trackMissionRef.current("give_kudos_3");
         setKudosSent(true);
         // Increment kudos_count locally
         const newCount = (selectedBuilding.kudos_count ?? 0) + 1;
@@ -1516,6 +1524,12 @@ if (claimingGift) return;
   // Streak auto check-in (1x per browser session)
   const { streakData } = useStreakCheckin(session, !!myBuilding?.claimed);
 
+  // Daily missions
+  const { data: dailiesData, trackClientMission, claim: claimDailies, refresh: refreshDailies, toasts: dailyToasts } = useDailies(session, !!myBuilding?.claimed);
+  // Stable ref so closures (visit useEffect, kudos callback) always use latest
+  const trackMissionRef = useRef(trackClientMission);
+  trackMissionRef.current = trackClientMission;
+
   // Live users presence
   const { count: liveUsers, status: liveStatus } = useLiveUsers();
 
@@ -1837,6 +1851,10 @@ if (claimingGift) return;
           setKudosError(null);
           lastDistRef.current = 999;
           setFocusDist(999);
+          // Track explore_district daily if clicking a building in a different district
+          if (myBuilding?.district && b.district && b.district !== myBuilding.district) {
+            trackMissionRef.current("explore_district");
+          }
           if (flyMode) {
             // Auto-pause flight to show profile card
             setFlyPauseSignal(s => s + 1);
@@ -3681,6 +3699,44 @@ if (claimingGift) return;
         </div>
       )}
 
+
+      {/* ─── Daily Missions (quest tracker, right side) ─── */}
+      {session && myBuilding?.claimed && !flyMode && !introMode && !rabbitCinematic && (
+        <DailiesWidget
+          data={dailiesData}
+          accent={theme.accent}
+          shadow={theme.shadow}
+          isMobile={isMobile}
+          onClaim={claimDailies}
+          onRefresh={refreshDailies}
+        />
+      )}
+
+      {/* ─── Daily mission progress toasts (top-center, always visible) ─── */}
+      {dailyToasts.length > 0 && (
+        <div className="pointer-events-none fixed left-1/2 top-4 z-[60] flex -translate-x-1/2 flex-col items-center gap-1.5">
+          {dailyToasts.map((t) => (
+            <div
+              key={t.id}
+              className="pointer-events-none border-[2px] border-border bg-bg-raised/95 px-4 py-2 text-[11px] backdrop-blur-sm"
+              style={{ animation: "toastDrop 0.3s ease-out, toastOut 0.4s ease-in 2s forwards", borderColor: t.done ? theme.accent : undefined }}
+            >
+              <span style={{ color: theme.accent }}>{t.done ? "\u2713" : "\u2606"}</span>
+              {" "}{t.title}{t.done ? " \u2014 Complete!" : ""}
+            </div>
+          ))}
+          <style jsx>{`
+            @keyframes toastDrop {
+              from { opacity: 0; transform: translateY(-16px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes toastOut {
+              from { opacity: 1; }
+              to { opacity: 0; transform: translateY(-8px); }
+            }
+          `}</style>
+        </div>
+      )}
 
       {/* ─── Activity Ticker ─── */}
       {!flyMode && !introMode && !rabbitCinematic && feedEvents.length >= 1 && (

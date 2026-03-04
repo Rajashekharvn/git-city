@@ -445,9 +445,9 @@ export async function GET(
       });
     }
 
-    // Only recalculate ranks when a new developer joins (not on every refresh)
-    if (isNewDev) {
-      await sb.rpc("recalculate_ranks");
+    // Assign last-place rank to new dev (lightweight, no full recalc)
+    if (isNewDev && devId) {
+      await sb.rpc("assign_new_dev_rank", { dev_id: devId });
     }
 
     const { data: withRank } = await sb

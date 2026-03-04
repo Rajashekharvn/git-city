@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { rateLimit } from "@/lib/rate-limit";
+import { trackDailyMission } from "@/lib/dailies";
 
 function getTodaySeed() {
   const now = new Date();
@@ -79,6 +80,10 @@ export async function POST(request: Request) {
   if (insertError) {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });
   }
+
+  // Track daily missions for fly scores
+  trackDailyMission(dev.id, "fly_score_50", { score });
+  trackDailyMission(dev.id, "fly_score_150", { score });
 
   // Compute rank: count distinct developers who beat this score
   // "Beat" = higher score, OR same score with faster time
