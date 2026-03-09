@@ -1076,7 +1076,7 @@ function HomeContent() {
       if (raw) {
         const { developerId, loadout, ts } = JSON.parse(raw);
         if (Date.now() - ts < 10 * 60 * 1000) {
-          const idx = allDevs.findIndex((d: Record<string, unknown>) => d.id === developerId);
+          const idx = allDevs.findIndex((d) => d.id === developerId);
           if (idx !== -1) {
             allDevs[idx] = { ...allDevs[idx], loadout };
           }
@@ -1213,7 +1213,7 @@ function HomeContent() {
           if (raw) {
             const { developerId, loadout, ts } = JSON.parse(raw);
             if (Date.now() - ts < 10 * 60 * 1000) {
-              const idx = allDevs.findIndex((d: Record<string, unknown>) => d.id === developerId);
+              const idx = allDevs.findIndex((d) => d.id === developerId);
               if (idx !== -1) {
                 allDevs[idx] = { ...allDevs[idx], loadout };
               }
@@ -1606,11 +1606,11 @@ function HomeContent() {
       const syncedDev = {
         ...(existingDev ?? {}),
         ...devData,
-        owned_items: (existingDev?.owned_items as string[] | undefined) ?? [],
-        achievements: (existingDev?.achievements as string[] | undefined) ?? [],
+        owned_items: existingDev?.owned_items ?? [],
+        achievements: existingDev?.achievements ?? [],
         loadout: existingDev?.loadout ?? null,
-        custom_color: (existingDev?.custom_color as string | null | undefined) ?? null,
-        billboard_images: (existingDev?.billboard_images as string[] | undefined) ?? [],
+        custom_color: existingDev?.custom_color ?? null,
+        billboard_images: existingDev?.billboard_images ?? [],
         active_raid_tag: existingDev?.active_raid_tag ?? null,
         kudos_count: devData.kudos_count ?? existingDev?.kudos_count ?? 0,
         visit_count: devData.visit_count ?? existingDev?.visit_count ?? 0,
@@ -1621,8 +1621,8 @@ function HomeContent() {
         xp_level: devData.xp_level ?? existingDev?.xp_level ?? 1,
       };
       rawDevsRef.current = existedBefore
-        ? rawDevsRef.current.map((d: Record<string, unknown>) =>
-            (d.github_login as string)?.toLowerCase() === refreshedLogin ? syncedDev : d
+        ? rawDevsRef.current.map((d) =>
+            d.github_login?.toLowerCase() === refreshedLogin ? syncedDev : d
           )
         : [...rawDevsRef.current, syncedDev];
 
