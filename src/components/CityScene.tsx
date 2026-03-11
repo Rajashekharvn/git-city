@@ -78,6 +78,7 @@ interface CitySceneProps {
   holdRise?: boolean;
   liveByLogin?: Map<string, LiveSession>;
   cityEnergy?: number;
+  authLogin?: string | null;
 }
 
 export default function CityScene({
@@ -95,6 +96,7 @@ export default function CityScene({
   holdRise,
   liveByLogin,
   cityEnergy,
+  authLogin,
 }: CitySceneProps) {
   // Single atlas texture for all building windows (created once per theme)
   const atlasTexture = useMemo(() => createWindowAtlas(colors), [colors]);
@@ -169,6 +171,7 @@ export default function CityScene({
         holdRise={holdRise}
         liveByLogin={liveByLogin}
         cityEnergy={cityEnergy}
+        authLogin={authLogin}
       />
 
       {/* Live presence dots above active buildings */}
@@ -183,6 +186,7 @@ export default function CityScene({
         flyMode={flyMode}
         focusedBuilding={focusedBuilding}
         focusedBuildingB={focusedBuildingB}
+        authLogin={authLogin}
       />
 
       {/* Effects: React components only for nearby buildings with items */}
@@ -197,6 +201,7 @@ export default function CityScene({
         introMode={introMode}
         flyMode={flyMode}
         ghostPreviewLogin={ghostPreviewLogin}
+        authLogin={authLogin}
       />
 
       {/* FocusBeacon: standalone, only when a building is focused */}

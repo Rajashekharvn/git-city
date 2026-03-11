@@ -2017,6 +2017,7 @@ function HomeContent() {
         focusedBuilding={focusedBuilding}
         focusedBuildingB={focusedBuildingB}
         accentColor={theme.accent}
+        authLogin={authLogin}
         onClearFocus={() => setFocusedBuilding(null)}
         flyPauseSignal={flyPauseSignal}
         flyHasOverlay={!!selectedBuilding || pillModalOpen || founderMessageOpen || rabbitCinematic}
