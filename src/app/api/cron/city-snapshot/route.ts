@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+export const maxDuration = 300;
+
 const STORAGE_BUCKET = "city-data";
 const STORAGE_PATH = "snapshot.json";
 const PAGE_SIZE = 1000; // Supabase PostgREST caps at 1000 rows per request
